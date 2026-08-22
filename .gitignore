@@ -22,10 +22,15 @@ docs/
 /backend/.migrations/
 /backend/.venv/
 **/__pycache__/
+/backend/.coverage
+/backend/htmlcov/
+/backend/.pytest_cache/
+/backend/staticfiles/
 #/backend/media/
 
-# VS Code
+# IDEs
 .vscode/
+.idea/
 
 # OS-specific
 .DS_Store
