@@ -7,15 +7,10 @@ import sys
 import subprocess
 
 def run_tests():
-    """Ejecuta los tests usando el Python del entorno virtual."""
+    """Ejecuta los tests."""
     try:
-        # Usar el Python del entorno virtual directamente
-        python_exe = os.path.join('venv', 'Scripts', 'python.exe')
-        
-        if not os.path.exists(python_exe):
-            print("❌ Error: No se encontró el entorno virtual en venv/Scripts/")
-            return False
-        
+        python_exe = sys.executable
+
         # Configurar variable de entorno para Django
         env = os.environ.copy()
         env['DJANGO_SETTINGS_MODULE'] = 'tests.test_settings'
@@ -42,8 +37,8 @@ def run_tests():
 def run_specific_test(test_file):
     """Ejecuta un test específico."""
     try:
-        python_exe = os.path.join('venv', 'Scripts', 'python.exe')
-        
+        python_exe = sys.executable
+
         # Configurar variable de entorno para Django
         env = os.environ.copy()
         env['DJANGO_SETTINGS_MODULE'] = 'tests.test_settings'
