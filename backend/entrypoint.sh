@@ -16,8 +16,10 @@ except Exception:
     sleep 1
 done
 
-echo "Recolectando ficheros estaticos..."
-python manage.py collectstatic --noinput
+if [ "$DEBUG" != "True" ]; then
+    echo "Recolectando ficheros estaticos..."
+    python manage.py collectstatic --noinput
+fi
 
 echo "Aplicando migraciones..."
 python manage.py migrate --noinput
