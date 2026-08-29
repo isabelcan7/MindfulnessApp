@@ -34,6 +34,12 @@ import Exportar from './pages/investigador/Exportar';
 import TerminosPrograma from './pages/TerminosPrograma';
 import TerminosServicio from './pages/TerminosServicio';
 import About from './pages/About';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminInvestigadores from './pages/admin/AdminInvestigadores';
+import AdminParticipantes from './pages/admin/AdminParticipantes';
+import AdminProgramas from './pages/admin/AdminProgramas';
+import AdminInscripciones from './pages/admin/AdminInscripciones';
+import AdminUsuarios from './pages/admin/AdminUsuarios';
 
 function App() {
   return (
@@ -107,6 +113,15 @@ function App() {
           <Route path="/completados" element={<ProgramasCompletados />} />
           <Route path="/completados/:id" element={<ProgramaCompletado />} />
           <Route path="/completados/:programaId/sesion/:sesionId" element={<HacerSesion completado={true} />} />
+        </Route>
+
+        <Route element={<PrivateRoute roles={[ROLES.ADMIN]} />}>
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/investigadores" element={<AdminInvestigadores />} />
+          <Route path="/admin/participantes" element={<AdminParticipantes />} />
+          <Route path="/admin/programas" element={<AdminProgramas />} />
+          <Route path="/admin/inscripciones" element={<AdminInscripciones />} />
+          <Route path="/admin/usuarios" element={<AdminUsuarios />} />
         </Route>
 
         {/* Ruta comodín para manejar rutas no existentes */}

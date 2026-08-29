@@ -26,6 +26,7 @@ urlpatterns = [
     path('api/programas/', include('programa.urls')),
     path('api/sesiones/', include('sesion.urls')),
     path('api/cuestionario/', include('cuestionario.urls')),
+    path('api/admin/', include('administracion.urls')),
 ]
 
 if settings.DEBUG:

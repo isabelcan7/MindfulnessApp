@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'programa',
     'sesion',
     'cuestionario',
+    'administracion',
 ]
 
 MIDDLEWARE = [

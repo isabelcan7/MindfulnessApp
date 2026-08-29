@@ -95,7 +95,9 @@ export const AuthProvider = ({ children }) => {
             setUser(user);
 
             // Redirigir según el rol
-            if (user.role === ROLES.INVESTIGADOR) {
+            if (user.role === ROLES.ADMIN) {
+                navigate('/admin');
+            } else if (user.role === ROLES.INVESTIGADOR) {
                 navigate('/dashboard');
             } else {
                 navigate('/home');
