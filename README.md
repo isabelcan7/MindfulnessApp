@@ -207,11 +207,21 @@ desarrollo en cosas que importan:
 | Código | montado como volumen | copiado dentro de la imagen |
 | Estáticos y media | los sirve Django | los sirve nginx desde volúmenes |
 | `DEBUG` | `True` | `False`, forzado por el compose |
-| Puertos expuestos | 3000, 8000, 5432 | solo el 80 |
+| Puertos expuestos | 3000, 8000, 5432 | solo 80 y 443 |
+| TLS | no | **Caddy**, certificados automáticos |
 
-nginx es el único punto de entrada: sirve el frontend y hace de proxy a `/api/` y
-`/admin/`. Por eso el frontend usa **rutas relativas** y no necesita conocer el
-dominio al construirse.
+Las capas en producción son tres:
+
+```
+internet ──► Caddy (:443, termina TLS) ──► nginx (:80) ──► gunicorn (:8000)
+                                            │                    │
+                                            ├─ SPA               └─ Django
+                                            ├─ /static/
+                                            └─ /media/
+```
+
+Solo Caddy publica puertos al exterior. El frontend usa **rutas relativas**, así
+que no necesita conocer el dominio al construirse.
 
 ### Pasos
 
@@ -256,17 +266,63 @@ dominio al construirse.
 
 ### HTTPS
 
-Con datos de personas reales, HTTPS no es opcional: sin él las contraseñas y los
-tokens JWT viajan en claro. El stack sirve HTTP por el puerto 80 y espera un
-proxy inverso por delante que termine TLS. Las dos vías habituales:
+Con datos de personas reales HTTPS no es opcional: sin él las contraseñas y los
+tokens JWT viajan en claro. Ya está resuelto — **Caddy obtiene y renueva los
+certificados de Let's Encrypt solo**, sin intervención.
 
-- Un proxy con certificados automáticos de Let's Encrypt (Caddy o Traefik)
-  delante del stack.
-- El proxy que ya te da la plataforma, si despliegas en un PaaS.
+Lo único que tienes que hacer es apuntar el DNS de tu dominio a la IP del
+servidor y poner en el `.env`:
 
-Una vez tengas HTTPS, pon `SECURE_SSL=True` en el `.env`: activa la redirección a
-HTTPS, HSTS y las cookies seguras. **Actívalo solo cuando el HTTPS funcione**, o
-entrarás en un bucle de redirecciones.
+```bash
+SITE_ADDRESS=midominio.com
+SECURE_SSL=True
+ALLOWED_HOSTS=midominio.com
+CORS_ALLOWED_ORIGINS=https://midominio.com
+```
+
+Al arrancar, Caddy pide el certificado, redirige todo el tráfico de HTTP a HTTPS
+(308) y lo renueva antes de que caduque. Requisitos: el dominio debe resolver a
+ese servidor y los **puertos 80 y 443 accesibles desde internet** — el 80 es
+imprescindible porque Let's Encrypt lo usa para validar que el dominio es tuyo.
+
+`SECURE_SSL=True` activa en Django la redirección a HTTPS, HSTS y las cookies
+`Secure`. Caddy añade además `Strict-Transport-Security`,
+`X-Content-Type-Options`, `X-Frame-Options` y `Referrer-Policy`, y oculta la
+cabecera `Server`.
+
+#### Los tres modos de `SITE_ADDRESS`
+
+| Valor | Qué hace | Cuándo |
+| --- | --- | --- |
+| `midominio.com` | Certificado de Let's Encrypt | Producción |
+| `localhost` | Certificado de la CA interna de Caddy | Probar TLS en local |
+| `:80` | Sin TLS | El proxy del proveedor ya termina TLS |
+
+Con `:80`, pon **`SECURE_SSL=False`**: si no, Django redirige a `https://` y la
+app queda inaccesible porque nada escucha ahí.
+
+Para probar el TLS en tu máquina antes de desplegar:
+
+```bash
+cp .env.prod.example .env     # y pon SITE_ADDRESS=localhost
+docker compose -f docker-compose.prod.yml up -d --build
+curl -k https://localhost/
+```
+
+El certificado lo firma la CA local de Caddy, así que el navegador avisará de que
+no es de confianza. Es lo esperado: sirve para verificar que la cadena TLS
+funciona, no para producción.
+
+#### Certificados y renovación
+
+Los certificados viven en el volumen `caddy_data`. **No lo borres**: Let's
+Encrypt limita el número de peticiones por dominio y semana, y perder el volumen
+obliga a pedirlos de nuevo. Sobrevive a `down` y a `up --build`; solo lo elimina
+un `down -v`.
+
+Si algo falla al pedir el certificado, el motivo está en `docker compose -f
+docker-compose.prod.yml logs caddy`. Las causas habituales son que el DNS aún no
+ha propagado o que el puerto 80 está cerrado en el firewall.
 
 ### Copias de seguridad
 
@@ -291,7 +347,7 @@ La app almacena datos personales de los participantes (nombre, email, fecha de
 nacimiento, género, ubicación, ocupación) y sus respuestas a cuestionarios y
 diarios de sesión. Antes de reclutar a nadie:
 
-- [ ] HTTPS funcionando y `SECURE_SSL=True`.
+- [ ] HTTPS funcionando (`SITE_ADDRESS` con tu dominio) y `SECURE_SSL=True`.
 - [ ] `SECRET_KEY` y `DB_PASSWORD` nuevas, distintas de las de desarrollo.
 - [ ] Copias de seguridad automáticas de `pgdata` y `media`, con una
       restauración ya probada.

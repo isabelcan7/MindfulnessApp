@@ -1,0 +1,29 @@
+# Caddy termina el TLS y hace de proxy al frontend (nginx), que a su vez
+# sirve la SPA y proxea /api y /admin a gunicorn.
+#
+# SITE_ADDRESS determina el modo de TLS:
+#   midominio.com  -> certificado automatico de Let's Encrypt
+#   localhost      -> certificado de la CA interna de Caddy (pruebas locales)
+#   :80            -> sin TLS, para cuando el proxy del proveedor ya lo hace
+#
+# Para recibir avisos de caducidad de Let's Encrypt, descomenta este bloque
+# y pon tu email. Caddy renueva solo, asi que es opcional.
+# {
+# 	email tu@email.com
+# }
+
+{$SITE_ADDRESS} {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	reverse_proxy frontend:80 {
+		header_up X-Forwarded-Proto {scheme}
+	}
+}
