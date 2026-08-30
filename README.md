@@ -161,6 +161,38 @@ todos con la contraseña `MindfulnessApp123`:
 >   -d '{"username":"admin","password":"MindfulnessApp123"}'
 > ```
 
+### Dependencias y avisos de seguridad
+
+Dependabot cuenta todo el grafo de dependencias sin distinguir si el código
+llega a ejecutarse, así que el número de alertas engaña. Al triarlas:
+
+- **Backend**: todo lo de `requirements.txt` acaba en la imagen y corre en
+  producción. Aquí las alertas se tratan en serio, sobre todo en `Django`,
+  `PyJWT` y `djangorestframework*`, que sostienen el ORM y la autenticación.
+- **Frontend**: solo llega al navegador lo que Vite empaqueta — `react`,
+  `react-dom`, `react-router-dom`, `axios` y `lucide-react`. Todo lo demás
+  (`vite`, `rollup`, `postcss`, `eslint`, `babel`, `nanoid`…) es herramienta de
+  build que corre en tu máquina, no en la de los participantes.
+
+Dos matices que se repiten y ahorran trabajo:
+
+- Muchas alertas de `axios` son de su adaptador de Node (`proxy`, `NO_PROXY`,
+  `Proxy-Authorization`). En navegador ese código no se incluye: el campo
+  `browser` de axios lo sustituye, y con él desaparecen `form-data` y
+  `follow-redirects`.
+- Muchas de `react-router` son de SSR, *framework mode* o RSC. Esta app es una
+  SPA con `BrowserRouter`, así que no le aplican; sí le aplican las de *open
+  redirect* y XSS.
+
+**Django debe permanecer en una rama con soporte.** La 5.1 quedó fuera de
+soporte y hay CVEs que solo se parchean en 5.2+, así que quedarse atrás acumula
+vulnerabilidades sin arreglo posible. La 5.2 es LTS.
+
+```bash
+docker compose exec frontend npm audit          # frontend
+docker compose exec backend pip list --outdated # backend
+```
+
 ---
 
 ## Despliegue
@@ -267,6 +299,8 @@ diarios de sesión. Antes de reclutar a nadie:
       `DEBUG=True` las trazas de error se muestran al usuario y se desactivan
       los validadores de contraseña).
 - [ ] `ALLOWED_HOSTS` con tu dominio real.
+- [ ] Dependencias sin vulnerabilidades conocidas que lleguen a runtime (ver
+      [Dependencias y avisos de seguridad](#dependencias-y-avisos-de-seguridad)).
 - [ ] Ningún `populate_db.py` ejecutado contra la base de datos del estudio.
 
 El encaje legal (consentimiento informado, base jurídica del tratamiento,
