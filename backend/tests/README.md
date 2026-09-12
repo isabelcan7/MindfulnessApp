@@ -23,7 +23,7 @@ tests/
 Instala las dependencias necesarias para testing:
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 ```
 
 Las dependencias de testing incluyen:
@@ -226,7 +226,7 @@ jobs:
         python-version: 3.9
     - name: Install dependencies
       run: |
-        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
     - name: Run tests
       run: |
         cd backend

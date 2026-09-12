@@ -86,7 +86,7 @@ docker compose exec backend python manage.py shell
 Solo si cambian las **dependencias**, no el código:
 
 ```bash
-# Tras tocar requirements.txt
+# Tras tocar requirements.txt o requirements-dev.txt
 docker compose up -d --build backend
 
 # Tras tocar package.json
@@ -166,9 +166,12 @@ todos con la contraseña `MindfulnessApp123`:
 Dependabot cuenta todo el grafo de dependencias sin distinguir si el código
 llega a ejecutarse, así que el número de alertas engaña. Al triarlas:
 
-- **Backend**: todo lo de `requirements.txt` acaba en la imagen y corre en
-  producción. Aquí las alertas se tratan en serio, sobre todo en `Django`,
-  `PyJWT` y `djangorestframework*`, que sostienen el ORM y la autenticación.
+- **Backend**: `requirements.txt` son las dependencias de runtime — acaban en la
+  imagen de producción y corren de cara al usuario. Aquí las alertas se tratan
+  en serio, sobre todo en `Django`, `PyJWT` y `djangorestframework*`, que
+  sostienen el ORM y la autenticación. `requirements-dev.txt` solo se instala en
+  la imagen `dev` (`pytest`, `factory-boy`, `mixer`…): no llega a producción, así
+  que sus alertas no son urgentes.
 - **Frontend**: solo llega al navegador lo que Vite empaqueta — `react`,
   `react-dom`, `react-router-dom`, `axios` y `lucide-react`. Todo lo demás
   (`vite`, `rollup`, `postcss`, `eslint`, `babel`, `nanoid`…) es herramienta de
