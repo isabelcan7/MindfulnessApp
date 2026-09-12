@@ -7,8 +7,8 @@ MB = 1024 * 1024
 MAX_TAMANO_AUDIO = 25 * MB
 MAX_TAMANO_VIDEO = 200 * MB
 
-EXTENSIONES_AUDIO = ('.mp3', '.m4a', '.ogg')
-EXTENSIONES_VIDEO = ('.mp4', '.webm')
+EXTENSIONES_AUDIO = ('.mp3', '.m4a')
+EXTENSIONES_VIDEO = ('.mp4',)
 
 TIPOS_MIME_AUDIO = (
     'audio/mpeg',
@@ -16,12 +16,9 @@ TIPOS_MIME_AUDIO = (
     'audio/mp4',
     'audio/m4a',
     'audio/x-m4a',
-    'audio/ogg',
-    'application/ogg',
 )
 TIPOS_MIME_VIDEO = (
     'video/mp4',
-    'video/webm',
 )
 
 

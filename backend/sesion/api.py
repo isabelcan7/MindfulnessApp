@@ -167,7 +167,7 @@ def sesion_detail(request, pk):
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'GET':
-        serializer = SesionDetalleSerializer(sesion)
+        serializer = SesionDetalleSerializer(sesion, context={'request': request})
         return Response(serializer.data)
 
     elif request.method in ['PUT', 'PATCH']:

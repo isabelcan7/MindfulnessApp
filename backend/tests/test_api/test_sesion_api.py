@@ -175,7 +175,26 @@ class TestSesionAPI:
         assert 'tipo de contenido' in response.data['error']
 
     def test_sesion_create_video_formato_permitido(self, authenticated_client_investigador, programa_borrador):
-        """Test crear sesión con un vídeo webm válido."""
+        """Test crear sesión con un vídeo mp4 válido."""
+        video = SimpleUploadedFile('practica.mp4', b'0' * 1024, content_type='video/mp4')
+        data = {
+            'programa': programa_borrador.id,
+            'titulo': 'Sesión con mp4',
+            'semana': 2,
+            'duracion_estimada': 20,
+            'tipo_practica': 'breath',
+            'tipo_contenido': 'video',
+            'contenido_video': video
+        }
+
+        url = '/api/sesiones/'
+        response = authenticated_client_investigador.post(url, data, format='multipart')
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert Sesion.objects.filter(titulo='Sesión con mp4').exists()
+
+    def test_sesion_create_video_webm_rechazado(self, authenticated_client_investigador, programa_borrador):
+        """Test rechazar webm: no se reproduce de forma nativa en iOS."""
         video = SimpleUploadedFile('practica.webm', b'0' * 1024, content_type='video/webm')
         data = {
             'programa': programa_borrador.id,
@@ -190,8 +209,28 @@ class TestSesionAPI:
         url = '/api/sesiones/'
         response = authenticated_client_investigador.post(url, data, format='multipart')
 
-        assert response.status_code == status.HTTP_201_CREATED
-        assert Sesion.objects.filter(titulo='Sesión con webm').exists()
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert not Sesion.objects.filter(titulo='Sesión con webm').exists()
+
+    def test_sesion_detail_devuelve_url_absoluta_de_media(self, authenticated_client_investigador, programa_borrador):
+        """Test que el detalle devuelve la URL de media completa, no relativa."""
+        audio = SimpleUploadedFile('meditacion.mp3', b'0' * 1024, content_type='audio/mpeg')
+        crear = authenticated_client_investigador.post('/api/sesiones/', {
+            'programa': programa_borrador.id,
+            'titulo': 'Sesión para URL',
+            'semana': 3,
+            'duracion_estimada': 20,
+            'tipo_practica': 'breath',
+            'tipo_contenido': 'audio',
+            'contenido_audio': audio
+        }, format='multipart')
+        assert crear.status_code == status.HTTP_201_CREATED
+
+        sesion_id = Sesion.objects.get(titulo='Sesión para URL').id
+        response = authenticated_client_investigador.get(f'/api/sesiones/{sesion_id}/')
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['contenido_audio'].startswith('http')
 
     def test_sesion_detail_get_success(self, authenticated_client_investigador, sesion):
         """Test obtener detalle de sesión exitosamente."""

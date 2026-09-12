@@ -334,8 +334,15 @@ que se acepta está definido en [`backend/sesion/validators.py`](backend/sesion/
 
 | | Formatos | Tamaño máximo |
 | --- | --- | --- |
-| Audio | `.mp3`, `.m4a`, `.ogg` | 25 MB |
-| Vídeo | `.mp4`, `.webm` | 200 MB |
+| Audio | `.mp3`, `.m4a` | 25 MB |
+| Vídeo | `.mp4` (H.264 + AAC) | 200 MB |
+
+La lista de formatos es corta a propósito: son los que se reproducen de forma
+nativa en **iOS, Android y navegador** sin librerías extra. `.webm` y `.ogg`
+quedan fuera aunque funcionen en Chrome, porque AVFoundation —el motor de
+reproducción de iOS, el que usan React Native, Flutter y cualquier app nativa— no
+los soporta. Un fichero subido hoy en esos formatos sería un fichero que ningún
+iPhone podría reproducir el día que exista app móvil.
 
 Se comprueban tres cosas: el tamaño, la extensión y el `Content-Type` que declara
 el navegador. La **extensión** es la que importa para la seguridad: es lo que
@@ -350,6 +357,11 @@ llegue a Django, y el investigador vería un error genérico en vez del mensaje.
 
 > En un despliegue sin nginx por delante (Render, Railway y similares) ese tope no
 > existe, así que el único límite es el del validador.
+
+El detalle de una sesión devuelve la URL de media **absoluta**, no relativa: un
+cliente móvil no tiene una página desde la que resolver `/media/...`, así que la
+API le da la URL lista para reproducir. En web sigue funcionando igual porque
+`getMediaUrl()` deja pasar las URLs que ya vienen completas.
 
 ### Copias de seguridad
 
