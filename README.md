@@ -327,6 +327,30 @@ Si algo falla al pedir el certificado, el motivo está en `docker compose -f
 docker-compose.prod.yml logs caddy`. Las causas habituales son que el DNS aún no
 ha propagado o que el puerto 80 está cerrado en el firewall.
 
+### Ficheros que suben los investigadores
+
+Las sesiones de tipo audio o vídeo guardan el fichero en el volumen `media`. Lo
+que se acepta está definido en [`backend/sesion/validators.py`](backend/sesion/validators.py):
+
+| | Formatos | Tamaño máximo |
+| --- | --- | --- |
+| Audio | `.mp3`, `.m4a`, `.ogg` | 25 MB |
+| Vídeo | `.mp4`, `.webm` | 200 MB |
+
+Se comprueban tres cosas: el tamaño, la extensión y el `Content-Type` que declara
+el navegador. La **extensión** es la que importa para la seguridad: es lo que
+determina con qué `Content-Type` sirve nginx el fichero después, así que es lo que
+evita que alguien suba un `.html` o un `.svg` y acabe ejecutándose como página en
+tu propio dominio. El `Content-Type` de la subida es una comprobación extra, pero
+por sí sola no vale: lo pone el cliente y se puede falsear.
+
+Si cambias el máximo de vídeo, cambia también `client_max_body_size` en
+[`frontend/nginx.conf`](frontend/nginx.conf): nginx corta la petición antes de que
+llegue a Django, y el investigador vería un error genérico en vez del mensaje.
+
+> En un despliegue sin nginx por delante (Render, Railway y similares) ese tope no
+> existe, así que el único límite es el del validador.
+
 ### Copias de seguridad
 
 Los datos de los participantes viven en el volumen `pgdata`. Si lo pierdes, no

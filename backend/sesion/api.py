@@ -16,6 +16,8 @@ from django.shortcuts import get_object_or_404
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError as DRFValidationError
+from .validators import validar_audio, validar_video
 import os
 from django.conf import settings
 
@@ -31,15 +33,12 @@ def validate_url(url):
     except ValidationError:
         return False
 
-def validate_video_file(file):
-    if not file:
-        return True
-    return file.name.lower().endswith('.mp4')
-
-def validate_audio_file(file):
-    if not file:
-        return True
-    return file.name.lower().endswith(('.mp3', '.wav', '.ogg', '.m4a'))
+def error_de_archivo(archivo, validador):
+    try:
+        validador(archivo)
+    except DRFValidationError as e:
+        return Response({'error': e.detail[0]}, status=status.HTTP_400_BAD_REQUEST)
+    return None
 
 @api_view(['GET', 'POST'])
 @permission_classes([permissions.IsAuthenticated])
@@ -132,14 +131,16 @@ def sesion_list_create(request):
             audio_file = request.FILES.get('contenido_audio')
             if audio_file:
                 request.data['contenido_audio'] = audio_file
-            if audio_file and not validate_audio_file(audio_file):
-                return Response({'error': 'Solo se permiten archivos de audio en formato MP3, WAV, OGG o M4A'}, status=status.HTTP_400_BAD_REQUEST)
+            error = error_de_archivo(audio_file, validar_audio)
+            if error:
+                return error
         elif tipo_contenido == 'video':
             video_file = request.FILES.get('contenido_video')
             if video_file:
                 request.data['contenido_video'] = video_file
-            if video_file and not validate_video_file(video_file):
-                return Response({'error': 'Solo se permiten archivos de video en formato MP4'}, status=status.HTTP_400_BAD_REQUEST)
+            error = error_de_archivo(video_file, validar_video)
+            if error:
+                return error
         
         serializer = SesionSerializer(data=request.data)
         if serializer.is_valid():
@@ -200,13 +201,13 @@ def sesion_detail(request, pk):
             if not request.data.get('contenido_temporizador'):
                 request.data['contenido_temporizador'] = 0
         elif tipo_contenido == 'audio':
-            audio_file = request.FILES.get('contenido_audio')
-            if audio_file and not validate_audio_file(audio_file):
-                return Response({'error': 'Solo se permiten archivos de audio en formato MP3, WAV, OGG o M4A'}, status=status.HTTP_400_BAD_REQUEST)
+            error = error_de_archivo(request.FILES.get('contenido_audio'), validar_audio)
+            if error:
+                return error
         elif tipo_contenido == 'video':
-            video_file = request.FILES.get('contenido_video')
-            if video_file and not validate_video_file(video_file):
-                return Response({'error': 'Solo se permiten archivos de video en formato MP4'}, status=status.HTTP_400_BAD_REQUEST)
+            error = error_de_archivo(request.FILES.get('contenido_video'), validar_video)
+            if error:
+                return error
 
         # Limpiar contenido anterior si se cambió el tipo de contenido
         if request.data.get('limpiar_contenido') == 'true':

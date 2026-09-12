@@ -352,7 +352,7 @@ const CrearSesion = () => {
                                         id="contenido_audio"
                                         name="contenido_audio"
                                         type="file"
-                                        accept="audio/*"
+                                        accept=".mp3,.m4a,.ogg"
                                         required
                                         className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:ring-1 text-white placeholder-purple-200 outline-none"
                                         onChange={handleFileChange}
@@ -370,7 +370,7 @@ const CrearSesion = () => {
                                         id="contenido_video"
                                         name="contenido_video"
                                         type="file"
-                                        accept="video/mp4"
+                                        accept=".mp4,.webm"
                                         required
                                         className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:ring-1 text-white placeholder-purple-200 outline-none"
                                         onChange={handleFileChange}

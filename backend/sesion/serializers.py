@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models import Sesion, DiarioSesion
 from usuario.serializers import ParticipanteSerializer
 from config.enums import EtiquetaPractica, TipoContenido, Escala
+from .validators import validar_audio, validar_video
 
 class EtiquetaPracticaSerializer(serializers.Serializer):
     value = serializers.CharField()
@@ -36,6 +37,12 @@ class SesionSerializer(serializers.ModelSerializer):
     contenido_url = serializers.URLField(required=False, allow_blank=True, allow_null=True)
     contenido_audio = serializers.FileField(required=False, allow_null=True, write_only=True)
     contenido_video = serializers.FileField(required=False, allow_null=True, write_only=True)
+
+    def validate_contenido_audio(self, value):
+        return validar_audio(value)
+
+    def validate_contenido_video(self, value):
+        return validar_video(value)
 
     def validate(self, data):
         tipo_contenido = data.get('tipo_contenido')

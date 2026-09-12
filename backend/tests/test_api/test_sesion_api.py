@@ -5,6 +5,7 @@ from sesion.models import Sesion, DiarioSesion
 from programa.models import InscripcionPrograma, Programa
 from config.enums import EstadoInscripcion, EtiquetaPractica, TipoContenido, EstadoPublicacion
 from django.core.files.uploadedfile import SimpleUploadedFile
+from sesion.validators import MAX_TAMANO_AUDIO
 
 @pytest.mark.django_db
 class TestSesionAPI:
@@ -89,6 +90,108 @@ class TestSesionAPI:
         response = authenticated_client_investigador.post(url, data, format='json')
         
         assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_sesion_create_audio_success(self, authenticated_client_investigador, programa_borrador):
+        """Test crear sesión con un audio de formato y tamaño válidos."""
+        audio = SimpleUploadedFile('meditacion.mp3', b'0' * 1024, content_type='audio/mpeg')
+        data = {
+            'programa': programa_borrador.id,
+            'titulo': 'Sesión con audio',
+            'semana': 2,
+            'duracion_estimada': 20,
+            'tipo_practica': 'breath',
+            'tipo_contenido': 'audio',
+            'contenido_audio': audio
+        }
+
+        url = '/api/sesiones/'
+        response = authenticated_client_investigador.post(url, data, format='multipart')
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert Sesion.objects.filter(titulo='Sesión con audio').exists()
+
+    def test_sesion_create_audio_extension_no_permitida(self, authenticated_client_investigador, programa_borrador):
+        """Test crear sesión subiendo un HTML disfrazado de audio (debe fallar)."""
+        archivo = SimpleUploadedFile(
+            'payload.html', b'<script>alert(1)</script>', content_type='audio/mpeg'
+        )
+        data = {
+            'programa': programa_borrador.id,
+            'titulo': 'Sesión con HTML',
+            'semana': 2,
+            'duracion_estimada': 20,
+            'tipo_practica': 'breath',
+            'tipo_contenido': 'audio',
+            'contenido_audio': archivo
+        }
+
+        url = '/api/sesiones/'
+        response = authenticated_client_investigador.post(url, data, format='multipart')
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert 'Formato' in response.data['error']
+        assert not Sesion.objects.filter(titulo='Sesión con HTML').exists()
+
+    def test_sesion_create_audio_demasiado_grande(self, authenticated_client_investigador, programa_borrador):
+        """Test crear sesión con un audio que supera los 25 MB (debe fallar)."""
+        audio = SimpleUploadedFile(
+            'larga.mp3', b'0' * (MAX_TAMANO_AUDIO + 1), content_type='audio/mpeg'
+        )
+        data = {
+            'programa': programa_borrador.id,
+            'titulo': 'Sesión con audio enorme',
+            'semana': 2,
+            'duracion_estimada': 20,
+            'tipo_practica': 'breath',
+            'tipo_contenido': 'audio',
+            'contenido_audio': audio
+        }
+
+        url = '/api/sesiones/'
+        response = authenticated_client_investigador.post(url, data, format='multipart')
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert 'maximo permitido' in response.data['error']
+
+    def test_sesion_create_video_mime_no_coincide(self, authenticated_client_investigador, programa_borrador):
+        """Test crear sesión con extensión válida pero tipo de contenido ajeno (debe fallar)."""
+        archivo = SimpleUploadedFile(
+            'clip.mp4', b'0' * 1024, content_type='image/svg+xml'
+        )
+        data = {
+            'programa': programa_borrador.id,
+            'titulo': 'Sesión con SVG',
+            'semana': 2,
+            'duracion_estimada': 20,
+            'tipo_practica': 'breath',
+            'tipo_contenido': 'video',
+            'contenido_video': archivo
+        }
+
+        url = '/api/sesiones/'
+        response = authenticated_client_investigador.post(url, data, format='multipart')
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert 'tipo de contenido' in response.data['error']
+
+    def test_sesion_create_video_formato_permitido(self, authenticated_client_investigador, programa_borrador):
+        """Test crear sesión con un vídeo webm válido."""
+        video = SimpleUploadedFile('practica.webm', b'0' * 1024, content_type='video/webm')
+        data = {
+            'programa': programa_borrador.id,
+            'titulo': 'Sesión con webm',
+            'semana': 2,
+            'duracion_estimada': 20,
+            'tipo_practica': 'breath',
+            'tipo_contenido': 'video',
+            'contenido_video': video
+        }
+
+        url = '/api/sesiones/'
+        response = authenticated_client_investigador.post(url, data, format='multipart')
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert Sesion.objects.filter(titulo='Sesión con webm').exists()
 
     def test_sesion_detail_get_success(self, authenticated_client_investigador, sesion):
         """Test obtener detalle de sesión exitosamente."""
