@@ -22,6 +22,11 @@ class Cuestionario(models.Model):
         choices=TipoCuestionario.choices,
         default=TipoCuestionario.PERSONALIZADO
     )
+    cuestionario_predefinido = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True
+    )
     titulo = models.CharField(max_length=200)
     descripcion = models.TextField(default='Sin descripción')
     preguntas = models.JSONField(default=list)

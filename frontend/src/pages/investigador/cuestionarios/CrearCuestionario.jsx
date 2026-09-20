@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Trash2, Save, Type, List, CheckSquare, ChevronDown, Star, BarChart2, Heart, ThumbsUp } from 'lucide-react';
 import api from '../../../config/axios';
 import ErrorAlert from '../../../components/ErrorAlert';
+import { cuestionariosPredefinidos } from '../../../constants/cuestionarioPredefinidos';
 
 const CrearCuestionario = ({ momento }) => {
     const { id } = useParams();
@@ -15,23 +16,10 @@ const CrearCuestionario = ({ momento }) => {
     const [tipoCuestionario, setTipoCuestionario] = useState('personalizado');
     const [cuestionarioPredefinidoSeleccionado, setCuestionarioPredefinidoSeleccionado] = useState(null);
 
-    // TODO: Quitar predefinido si no me da tiempo
     const tiposCuestionario = [
         { id: 'personalizado', nombre: 'Cuestionario Personalizado' },
         { id: 'likert', nombre: 'Likert Personalizado' },
         { id: 'predefinido', nombre: 'Cuestionario Predefinido' }
-    ];
-
-    const cuestionariosPredefinidos = [
-        { id: 'FFMQ', nombre: 'FFMQ (Five Facet Mindfulness Questionnaire)', descripcion: 'Mide cinco dimensiones clave del mindfulness: observar, describir, actuar con conciencia, no juzgar y no reaccionar ante la experiencia interna.' },
-        { id: 'PSS', nombre: 'PSS (Perceived Stress Scale)', descripcion: 'Evalúa el nivel de estrés en la vida cotidiana.' },
-        { id: 'MAAS', nombre: 'MAAS (Mindfulness Attention Awareness Scale)', descripcion: 'Mide el nivel de atención y conciencia plena durante el día.' },
-        { id: 'MBI', nombre: 'MBI (Maslach Burnout Inventory)', descripcion: 'Evalúa el agotamiento laboral, el cinismo y la eficacia personal.' },
-        { id: 'MAIA', nombre: 'MAIA (Multidimensional Assessment of Interoceptive Awareness)', descripcion: 'Mide la conciencia de las señales corporales.' },
-        { id: 'DASS', nombre: 'DASS (Depression Anxiety Stress Scales)', descripcion: 'Mide los niveles de depresión, ansiedad y estrés.' },
-        { id: 'PANAS', nombre: 'PANAS (Positive and Negative Affect Schedule)', descripcion: 'Evalúa los estados afectivos positivos y negativos que experimenta una persona en un momento dado.' },
-        { id: 'Ryff\'s', nombre: 'Ryff\'s Psychological Well-Being Scales', descripcion: 'Evalúan el bienestar psicológico a través de seis dimensiones: autonomía, dominio ambiental, crecimiento personal, propósito en la vida, aceptación positiva del yo y relaciones positivas con otros.' },
-        { id: 'SCS', nombre: 'SCS (Self-Compassion Scale)', descripcion: 'Mide la autocompasión a través de seis componentes: autocrítica, autocompasión, humanidad común, aislamiento, mindfulness y sobreidentificación.' }
     ];
 
     const tiposPregunta = [
@@ -65,6 +53,18 @@ const CrearCuestionario = ({ momento }) => {
     };
 
     const validarCuestionario = () => {
+        if (tipoCuestionario === 'predefinido') {
+            if (!cuestionarioPredefinidoSeleccionado) {
+                setError('Debe seleccionar un cuestionario predefinido');
+                return false;
+            }
+            if (!cuestionarioPredefinidoSeleccionado.textos?.length) {
+                setError(cuestionarioPredefinidoSeleccionado.motivoItems || 'Este cuestionario no tiene ítems disponibles');
+                return false;
+            }
+            return true;
+        }
+
         if (!titulo.trim()) {
             setError('Por favor, ingrese un título');
             return false;
@@ -281,6 +281,13 @@ const CrearCuestionario = ({ momento }) => {
         try {
             let preguntasFormateadas = preguntas;
 
+            if (tipoCuestionario === 'predefinido') {
+                preguntasFormateadas = [{
+                    etiquetas: cuestionarioPredefinidoSeleccionado.etiquetas,
+                    textos: cuestionarioPredefinidoSeleccionado.textos
+                }];
+            }
+
             // Si es un cuestionario Likert, simplificamos la estructura
             if (tipoCuestionario === 'likert') {
                 preguntasFormateadas = [{
@@ -296,7 +303,10 @@ const CrearCuestionario = ({ momento }) => {
                 descripcion,
                 preguntas: preguntasFormateadas,
                 momento,
-                tipo_cuestionario: tipoCuestionario
+                tipo_cuestionario: tipoCuestionario,
+                cuestionario_predefinido: tipoCuestionario === 'predefinido'
+                    ? cuestionarioPredefinidoSeleccionado.id
+                    : null
             };
 
             await api.post(`/programas/${id}/cuestionarios/`, cuestionario);
@@ -428,9 +438,58 @@ const CrearCuestionario = ({ momento }) => {
                                         >
                                             <h3 className="font-medium mb-2">{cuestionario.nombre}</h3>
                                             <p className="text-sm opacity-80">{cuestionario.descripcion}</p>
+                                            <p className="text-xs mt-2 opacity-60">
+                                                {cuestionario.textos.length > 0
+                                                    ? `${cuestionario.textos.length} ítems · escala de ${cuestionario.etiquetas.length} puntos`
+                                                    : 'Requiere que añadas los ítems'}
+                                            </p>
                                         </div>
                                     ))}
                                 </div>
+
+                                {cuestionarioPredefinidoSeleccionado && (
+                                    <div className="bg-white/5 border border-white/10 rounded-xl p-6">
+                                        <h3 className="text-lg font-semibold text-white mb-1">
+                                            {cuestionarioPredefinidoSeleccionado.nombre}
+                                        </h3>
+                                        <p className="text-sm text-purple-300 mb-4">
+                                            {cuestionarioPredefinidoSeleccionado.version}
+                                        </p>
+
+                                        {cuestionarioPredefinidoSeleccionado.textos.length === 0 ? (
+                                            <div className="bg-amber-500/10 border-l-4 border-amber-400/50 p-4 rounded-lg">
+                                                <p className="text-amber-200 text-sm">
+                                                    {cuestionarioPredefinidoSeleccionado.motivoItems}
+                                                </p>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <div className="mb-4">
+                                                    <h4 className="text-sm font-medium text-purple-200 mb-2">
+                                                        Escala de respuesta ({cuestionarioPredefinidoSeleccionado.etiquetas.length} puntos)
+                                                    </h4>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {cuestionarioPredefinidoSeleccionado.etiquetas.map((etiqueta, i) => (
+                                                            <span key={i} className="text-xs bg-white/10 text-purple-200 px-2 py-1 rounded">
+                                                                {i + 1}. {etiqueta}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <h4 className="text-sm font-medium text-purple-200 mb-2">
+                                                        Ítems ({cuestionarioPredefinidoSeleccionado.textos.length})
+                                                    </h4>
+                                                    <ol className="list-decimal list-inside space-y-1 max-h-72 overflow-y-auto pr-2">
+                                                        {cuestionarioPredefinidoSeleccionado.textos.map((texto, i) => (
+                                                            <li key={i} className="text-sm text-purple-100">{texto}</li>
+                                                        ))}
+                                                    </ol>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         ) : tipoCuestionario === 'likert' ? (
                             <div className="space-y-6">

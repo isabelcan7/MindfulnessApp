@@ -103,6 +103,9 @@ class TipoCuestionario(models.TextChoices):
     LIKERT = 'likert', 'Escala Likert'
     PREDEFINIDO = 'predefinido', 'Predefinido'
 
+def usa_formato_escala(tipo_cuestionario):
+    return tipo_cuestionario in (TipoCuestionario.LIKERT, TipoCuestionario.PREDEFINIDO)
+
 class TipoPregunta(models.TextChoices):
     TEXTO = 'texto', 'Texto Libre'
     SELECT = 'select', 'Selección Única'

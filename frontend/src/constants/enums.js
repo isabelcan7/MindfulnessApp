@@ -114,6 +114,10 @@ export const TipoCuestionario = {
     PREDEFINIDO: { value: 'predefinido', label: 'Predefinido' }
 };
 
+export const esFormatoEscala = (tipoCuestionario) =>
+    tipoCuestionario === TipoCuestionario.LIKERT.value ||
+    tipoCuestionario === TipoCuestionario.PREDEFINIDO.value;
+
 export const TipoPregunta = {
     TEXTO: { value: 'texto', label: 'Texto Libre' },
     SELECT: { value: 'select', label: 'Selección Única' },

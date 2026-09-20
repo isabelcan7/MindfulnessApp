@@ -6,6 +6,7 @@ from usuario.permissions import IsInvestigador
 from django.shortcuts import get_object_or_404
 from ..models import Programa
 from cuestionario.models import RespuestaCuestionario
+from config.enums import usa_formato_escala
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -43,7 +44,7 @@ def programa_cuestionarios_y_respuestas(request, pk):
             ).select_related('participante').order_by('participante__id', 'fecha_respuesta')
 
             # Si es un cuestionario tipo Likert
-            if cuestionario.tipo_cuestionario == 'likert':
+            if usa_formato_escala(cuestionario.tipo_cuestionario):
                 etiquetas = cuestionario.preguntas[0]['etiquetas']
                 textos = cuestionario.preguntas[0]['textos']
                 
@@ -56,7 +57,8 @@ def programa_cuestionarios_y_respuestas(request, pk):
                 return {
                     'id': cuestionario.id,
                     'nombre': cuestionario.titulo,
-                    'tipo': 'likert',
+                    'tipo': cuestionario.tipo_cuestionario,
+                    'instrumento': cuestionario.cuestionario_predefinido,
                     'etiquetas': etiquetas,
                     'textos': textos,
                     'respuestas': respuestas_por_participante

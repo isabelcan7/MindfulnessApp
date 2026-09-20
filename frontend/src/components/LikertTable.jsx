@@ -28,7 +28,7 @@ const LikertTable = ({
                             <td className="px-4 py-2">
                                 <span className="text-indigo-200">{texto}</span>
                             </td>
-                            {Array.from({ length: 5 }, (_, i) => (
+                            {Array.from({ length: etiquetas.length }, (_, i) => (
                                 <td key={i} className="px-4 py-2 text-center">
                                     <input
                                         type="radio"

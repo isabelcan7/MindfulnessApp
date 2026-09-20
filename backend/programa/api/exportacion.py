@@ -11,7 +11,7 @@ from cuestionario.models import RespuestaCuestionario
 from config.enums import (
     TipoContexto, EnfoqueMetodologico, EstadoPublicacion, 
     EstadoInscripcion, EtiquetaPractica, Genero, NivelEducativo,
-    ExperienciaMindfulness
+    ExperienciaMindfulness, usa_formato_escala
 )
 import csv
 import json
@@ -325,7 +325,7 @@ def generar_archivo_cuestionario(programa, momento, formato):
         return None
 
     # Si es un cuestionario tipo Likert
-    if cuestionario.tipo_cuestionario == 'likert':
+    if usa_formato_escala(cuestionario.tipo_cuestionario):
         # Obtener etiquetas y textos del cuestionario Likert
         etiquetas = cuestionario.preguntas[0]['etiquetas']
         textos = cuestionario.preguntas[0]['textos']
@@ -354,7 +354,8 @@ def generar_archivo_cuestionario(programa, momento, formato):
 
         if formato == 'json':
             return json.dumps({
-                'tipo': 'likert',
+                'tipo': cuestionario.tipo_cuestionario,
+                'instrumento': cuestionario.cuestionario_predefinido,
                 'momento': momento,
                 'etiquetas': etiquetas,
                 'textos': textos,

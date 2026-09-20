@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Trash2, Save, Type, List, CheckSquare, ChevronDown, Star, BarChart2, Heart, ThumbsUp } from 'lucide-react';
 import api from '../../../config/axios';
 import ErrorAlert from '../../../components/ErrorAlert';
+import { cuestionariosPredefinidos } from '../../../constants/cuestionarioPredefinidos';
 
 const EditarCuestionario = () => {
     const { id, cuestionarioId } = useParams();
@@ -20,18 +21,6 @@ const EditarCuestionario = () => {
         { id: 'personalizado', nombre: 'Cuestionario Personalizado' },
         { id: 'likert', nombre: 'Likert Personalizado' },
         { id: 'predefinido', nombre: 'Cuestionario Predefinido' }
-    ];
-
-    const cuestionariosPredefinidos = [
-        { id: 'FFMQ', nombre: 'FFMQ (Five Facet Mindfulness Questionnaire)', descripcion: 'Mide cinco dimensiones clave del mindfulness: observar, describir, actuar con conciencia, no juzgar y no reaccionar ante la experiencia interna.' },
-        { id: 'PSS', nombre: 'PSS (Perceived Stress Scale)', descripcion: 'Evalúa el nivel de estrés en la vida cotidiana.' },
-        { id: 'MAAS', nombre: 'MAAS (Mindfulness Attention Awareness Scale)', descripcion: 'Mide el nivel de atención y conciencia plena durante el día.' },
-        { id: 'MBI', nombre: 'MBI (Maslach Burnout Inventory)', descripcion: 'Evalúa el agotamiento laboral, el cinismo y la eficacia personal.' },
-        { id: 'MAIA', nombre: 'MAIA (Multidimensional Assessment of Interoceptive Awareness)', descripcion: 'Mide la conciencia de las señales corporales.' },
-        { id: 'DASS', nombre: 'DASS (Depression Anxiety Stress Scales)', descripcion: 'Mide los niveles de depresión, ansiedad y estrés.' },
-        { id: 'PANAS', nombre: 'PANAS (Positive and Negative Affect Schedule)', descripcion: 'Evalúa los estados afectivos positivos y negativos que experimenta una persona en un momento dado.' },
-        { id: 'Ryff\'s', nombre: 'Ryff\'s Psychological Well-Being Scales', descripcion: 'Evalúan el bienestar psicológico a través de seis dimensiones: autonomía, dominio ambiental, crecimiento personal, propósito en la vida, aceptación positiva del yo y relaciones positivas con otros.' },
-        { id: 'SCS', nombre: 'SCS (Self-Compassion Scale)', descripcion: 'Mide la autocompasión a través de seis componentes: autocrítica, autocompasión, humanidad común, aislamiento, mindfulness y sobreidentificación.' }
     ];
 
     const tiposPregunta = [

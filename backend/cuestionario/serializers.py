@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import Cuestionario, RespuestaCuestionario
-from config.enums import TipoPregunta, TipoCuestionario
+from config.enums import TipoPregunta, TipoCuestionario, usa_formato_escala
 
 class CuestionarioSerializer(serializers.ModelSerializer):
     momento_display = serializers.CharField(source='get_momento_display', read_only=True)
@@ -9,7 +9,8 @@ class CuestionarioSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cuestionario
         fields = ['id', 'programa', 'momento', 'momento_display', 'tipo_cuestionario', 'tipo_cuestionario_display', 
-                 'titulo', 'descripcion', 'preguntas', 'fecha_creacion', 'fecha_actualizacion']
+                 'titulo', 'descripcion', 'preguntas', 'cuestionario_predefinido',
+                 'fecha_creacion', 'fecha_actualizacion']
         read_only_fields = ['fecha_creacion', 'fecha_actualizacion']
 
     def validate_preguntas(self, preguntas):
@@ -19,7 +20,7 @@ class CuestionarioSerializer(serializers.ModelSerializer):
         tipo_cuestionario = self.context.get('tipo_cuestionario', self.initial_data.get('tipo_cuestionario'))
 
         # Si es un cuestionario Likert, validamos el nuevo formato
-        if tipo_cuestionario == 'likert':
+        if usa_formato_escala(tipo_cuestionario):
             if len(preguntas) != 1:
                 raise serializers.ValidationError("Los cuestionarios Likert deben tener una sola pregunta con etiquetas y textos")
             
@@ -30,8 +31,14 @@ class CuestionarioSerializer(serializers.ModelSerializer):
             if 'etiquetas' not in pregunta or 'textos' not in pregunta:
                 raise serializers.ValidationError("La pregunta Likert debe contener etiquetas y textos")
             
-            if not isinstance(pregunta['etiquetas'], list) or len(pregunta['etiquetas']) != 5:
+            if not isinstance(pregunta['etiquetas'], list):
+                raise serializers.ValidationError("Las etiquetas deben ser una lista")
+
+            if tipo_cuestionario == TipoCuestionario.LIKERT and len(pregunta['etiquetas']) != 5:
                 raise serializers.ValidationError("Las etiquetas deben ser una lista de 5 elementos")
+
+            if not 2 <= len(pregunta['etiquetas']) <= 11:
+                raise serializers.ValidationError("La escala debe tener entre 2 y 11 puntos")
             
             if not isinstance(pregunta['textos'], list) or len(pregunta['textos']) == 0:
                 raise serializers.ValidationError("Los textos deben ser una lista no vacía")
@@ -75,7 +82,7 @@ class CuestionarioSerializer(serializers.ModelSerializer):
         tipo_cuestionario = data.get('tipo_cuestionario')
         preguntas = data.get('preguntas', [])
 
-        if tipo_cuestionario == 'likert':
+        if usa_formato_escala(tipo_cuestionario):
             if len(preguntas) == 0:
                 raise serializers.ValidationError("El cuestionario Likert debe tener al menos una pregunta")
             return data
@@ -117,7 +124,7 @@ class RespuestaCuestionarioSerializer(serializers.ModelSerializer):
         respuestas = data['respuestas']
 
         # Si es un cuestionario Likert, validamos el formato especial
-        if cuestionario.tipo_cuestionario == 'likert':
+        if usa_formato_escala(cuestionario.tipo_cuestionario):
             if not isinstance(respuestas, list):
                 raise serializers.ValidationError("Las respuestas deben ser una lista para cuestionarios Likert")
             
@@ -126,8 +133,11 @@ class RespuestaCuestionarioSerializer(serializers.ModelSerializer):
                     f"El número de respuestas ({len(respuestas)}) no coincide con el número de preguntas ({len(cuestionario.preguntas[0]['textos'])})"
                 )
             
-            if not all(isinstance(r, int) and 1 <= r <= 5 for r in respuestas):
-                raise serializers.ValidationError("Todas las respuestas deben ser números entre 1 y 5")
+            puntos_escala = len(cuestionario.preguntas[0]['etiquetas'])
+            if not all(isinstance(r, int) and 1 <= r <= puntos_escala for r in respuestas):
+                raise serializers.ValidationError(
+                    f"Todas las respuestas deben ser números entre 1 y {puntos_escala}"
+                )
             
             return data
 

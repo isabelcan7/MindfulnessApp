@@ -1,10 +1,11 @@
 import React from 'react';
+import { esFormatoEscala } from '../constants/enums';
 
 const TablaCuestionario = ({ titulo, cuestionario }) => {
     if (!cuestionario) return null;
 
     // Renderizar tabla para cuestionario tipo Likert
-    if (cuestionario.tipo === 'likert') {
+    if (esFormatoEscala(cuestionario.tipo)) {
         const respuestasArray = Object.entries(cuestionario.respuestas).map(([id, respuestas]) => ({
             participante_id: id,
             respuestas: respuestas

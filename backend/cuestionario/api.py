@@ -8,7 +8,7 @@ from .serializers import CuestionarioSerializer, RespuestaCuestionarioSerializer
 from programa.models import Programa
 from usuario.models import Participante
 from programa.models import InscripcionPrograma, EstadoInscripcion
-from config.enums import TipoCuestionario, MomentoCuestionario
+from config.enums import TipoCuestionario, MomentoCuestionario, usa_formato_escala
 
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
@@ -290,17 +290,17 @@ def responder_cuestionario_pre(request):
         # Procesar las respuestas según el tipo de cuestionario
         respuestas = request.data.get('respuestas', {})
         
-        if cuestionario.tipo_cuestionario == 'likert':
+        if usa_formato_escala(cuestionario.tipo_cuestionario):
             # Para cuestionarios Likert, las respuestas vienen como un array
             if not isinstance(respuestas, list) or len(respuestas) != len(cuestionario.preguntas[0]['textos']):
                 return Response(
                     {'error': 'Formato de respuestas inválido para cuestionario Likert'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-            # Validar que cada respuesta sea un número entre 1 y 5
-            if not all(isinstance(r, int) and 1 <= r <= 5 for r in respuestas):
+            puntos_escala = len(cuestionario.preguntas[0]['etiquetas'])
+            if not all(isinstance(r, int) and 1 <= r <= puntos_escala for r in respuestas):
                 return Response(
-                    {'error': 'Las respuestas deben ser números entre 1 y 5'},
+                    {'error': f'Las respuestas deben ser números entre 1 y {puntos_escala}'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
@@ -372,17 +372,17 @@ def responder_cuestionario_post(request):
         # Procesar las respuestas según el tipo de cuestionario
         respuestas = request.data.get('respuestas', {})
         
-        if cuestionario.tipo_cuestionario == 'likert':
+        if usa_formato_escala(cuestionario.tipo_cuestionario):
             # Para cuestionarios Likert, las respuestas vienen como un array
             if not isinstance(respuestas, list) or len(respuestas) != len(cuestionario.preguntas[0]['textos']):
                 return Response(
                     {'error': 'Formato de respuestas inválido para cuestionario Likert'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-            # Validar que cada respuesta sea un número entre 1 y 5
-            if not all(isinstance(r, int) and 1 <= r <= 5 for r in respuestas):
+            puntos_escala = len(cuestionario.preguntas[0]['etiquetas'])
+            if not all(isinstance(r, int) and 1 <= r <= puntos_escala for r in respuestas):
                 return Response(
-                    {'error': 'Las respuestas deben ser números entre 1 y 5'},
+                    {'error': f'Las respuestas deben ser números entre 1 y {puntos_escala}'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
 

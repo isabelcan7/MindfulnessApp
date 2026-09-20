@@ -7,6 +7,7 @@ import ErrorAlert from '../../components/ErrorAlert';
 import MobileNavBar from '../../components/layout/MobileNavBar';
 import PageHeader from '../../components/layout/PageHeader';
 import LikertTable from '../../components/LikertTable';
+import { esFormatoEscala } from '../../constants/enums';
 
 const ResponderCuestionario = ({ momento }) => {
     const navigate = useNavigate();
@@ -21,7 +22,7 @@ const ResponderCuestionario = ({ momento }) => {
     const validarRespuestas = () => {
         if (!cuestionario) return false;
 
-        if (cuestionario.tipo_cuestionario === 'likert') {
+        if (esFormatoEscala(cuestionario.tipo_cuestionario)) {
             // Para cuestionarios Likert, verificamos que todas las filas tengan respuesta
             return Object.keys(respuestas).length === cuestionario.preguntas[0].textos.length;
         }
@@ -46,7 +47,7 @@ const ResponderCuestionario = ({ momento }) => {
                 setCuestionario(response.data);
 
                 // Inicializar respuestas según el tipo de cuestionario
-                if (response.data.tipo_cuestionario === 'likert') {
+                if (esFormatoEscala(response.data.tipo_cuestionario)) {
                     // Para Likert, inicializamos un objeto vacío
                     setRespuestas({});
                 } else {
@@ -108,7 +109,7 @@ const ResponderCuestionario = ({ momento }) => {
             setError(null);
 
             let respuestasAEnviar;
-            if (cuestionario.tipo_cuestionario === 'likert') {
+            if (esFormatoEscala(cuestionario.tipo_cuestionario)) {
                 // Para cuestionarios Likert, convertimos el objeto de respuestas a un array
                 respuestasAEnviar = {
                     respuestas: Array.from({ length: cuestionario.preguntas[0].textos.length },
@@ -141,7 +142,7 @@ const ResponderCuestionario = ({ momento }) => {
 
     const renderPregunta = (pregunta) => {
         // Si es un cuestionario Likert, renderizamos la tabla especial
-        if (cuestionario.tipo_cuestionario === 'likert') {
+        if (esFormatoEscala(cuestionario.tipo_cuestionario)) {
             return (
                 <LikertTable
                     textos={pregunta.textos}
@@ -259,7 +260,7 @@ const ResponderCuestionario = ({ momento }) => {
                                 <div key={pregunta.id || index} className="bg-indigo-500/10 backdrop-blur-xl rounded-xl p-6 md:p-8 shadow-sm border border-white/10">
                                     <div className="mb-6">
                                         <h3 className="text-xl font-semibold text-white">
-                                            {cuestionario.tipo_cuestionario === 'likert' ? (
+                                            {esFormatoEscala(cuestionario.tipo_cuestionario) ? (
                                                 'Completa la siguiente escala Likert'
                                             ) : (
                                                 `${index + 1}. ${pregunta.texto}`

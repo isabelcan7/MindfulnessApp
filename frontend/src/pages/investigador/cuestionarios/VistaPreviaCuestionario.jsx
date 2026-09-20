@@ -6,6 +6,7 @@ import { useAuth } from '../../../context/AuthContext';
 import ErrorAlert from '../../../components/ErrorAlert';
 import PageHeader from '../../../components/layout/PageHeader';
 import LikertTable from '../../../components/LikertTable';
+import { esFormatoEscala } from '../../../constants/enums';
 
 const VistaPreviaCuestionario = () => {
     const { id, cuestionarioId } = useParams();
@@ -24,7 +25,7 @@ const VistaPreviaCuestionario = () => {
                 setCuestionario(response.data);
 
                 // Solo inicializamos respuestas si no es un cuestionario Likert
-                if (response.data.tipo_cuestionario !== 'likert') {
+                if (!esFormatoEscala(response.data.tipo_cuestionario)) {
                     const respuestasIniciales = {};
                     response.data.preguntas.forEach(pregunta => {
                         if (pregunta.tipo === 'checkbox') {
@@ -72,7 +73,7 @@ const VistaPreviaCuestionario = () => {
 
         try {
             // Si es un cuestionario Likert, enviamos las respuestas en el formato correcto
-            const respuestasAEnviar = cuestionario.tipo_cuestionario === 'likert'
+            const respuestasAEnviar = esFormatoEscala(cuestionario.tipo_cuestionario)
                 ? { respuestas: Object.values(respuestas) }
                 : { respuestas };
 
@@ -88,7 +89,7 @@ const VistaPreviaCuestionario = () => {
 
     const renderPregunta = (pregunta) => {
         // Si es un cuestionario Likert, renderizamos la tabla especial
-        if (cuestionario.tipo_cuestionario === 'likert') {
+        if (esFormatoEscala(cuestionario.tipo_cuestionario)) {
             return (
                 <LikertTable
                     textos={pregunta.textos}
@@ -251,7 +252,7 @@ const VistaPreviaCuestionario = () => {
                                         <div className="relative bg-white/10 backdrop-blur-xl rounded-xl p-6 border border-white/10">
                                             <div className="mb-4">
                                                 <h3 className="text-lg font-medium text-white">
-                                                    {cuestionario.tipo_cuestionario === 'likert' ? (
+                                                    {esFormatoEscala(cuestionario.tipo_cuestionario) ? (
                                                         'Completa la siguiente escala Likert'
                                                     ) : (
                                                         `${index + 1}. ${pregunta.texto}`

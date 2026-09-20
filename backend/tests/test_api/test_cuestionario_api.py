@@ -48,6 +48,75 @@ class TestCuestionarioAPI:
         assert response.data['titulo'] == 'Cuestionario Pre Test API'
         assert Cuestionario.objects.filter(titulo='Cuestionario Pre Test API').exists()
 
+    def test_cuestionario_create_predefinido(self, authenticated_client_investigador, programa_borrador):
+        """Test crear cuestionario predefinido con su escala e items."""
+        data = {
+            'momento': MomentoCuestionario.PRE,
+            'tipo_cuestionario': TipoCuestionario.PREDEFINIDO,
+            'cuestionario_predefinido': 'MAAS',
+            'titulo': 'MAAS (Mindful Attention Awareness Scale)',
+            'descripcion': 'Mide el nivel de atencion y conciencia plena.',
+            'preguntas': [
+                {
+                    'etiquetas': ['Casi siempre', 'Muy frecuentemente', 'Algo frecuentemente',
+                                  'Algo infrecuentemente', 'Muy infrecuentemente', 'Casi nunca'],
+                    'textos': ['Item uno', 'Item dos', 'Item tres']
+                }
+            ]
+        }
+        
+        url = f'/api/programas/{programa_borrador.id}/cuestionarios/'
+        response = authenticated_client_investigador.post(url, data, format='json')
+        
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data['cuestionario_predefinido'] == 'MAAS'
+        cuestionario = Cuestionario.objects.get(id=response.data['id'])
+        assert len(cuestionario.preguntas[0]['etiquetas']) == 6
+        assert len(cuestionario.preguntas[0]['textos']) == 3
+
+    def test_cuestionario_predefinido_admite_escalas_no_de_cinco_puntos(self, authenticated_client_investigador, programa_borrador):
+        """Test que un predefinido acepta escalas de 4 y de 7 puntos."""
+        url = f'/api/programas/{programa_borrador.id}/cuestionarios/'
+
+        for momento, puntos in ((MomentoCuestionario.PRE, 4), (MomentoCuestionario.POST, 7)):
+            data = {
+                'momento': momento,
+                'tipo_cuestionario': TipoCuestionario.PREDEFINIDO,
+                'cuestionario_predefinido': 'DASS',
+                'titulo': f'Escala de {puntos} puntos',
+                'descripcion': 'Instrumento validado con escala propia.',
+                'preguntas': [
+                    {
+                        'etiquetas': [f'Opcion {i}' for i in range(puntos)],
+                        'textos': ['Item uno', 'Item dos']
+                    }
+                ]
+            }
+            response = authenticated_client_investigador.post(url, data, format='json')
+
+            assert response.status_code == status.HTTP_201_CREATED
+            assert len(response.data['preguntas'][0]['etiquetas']) == puntos
+
+    def test_cuestionario_likert_sigue_exigiendo_cinco_puntos(self, authenticated_client_investigador, programa_borrador):
+        """Test que el Likert personalizado mantiene la restriccion de 5 etiquetas."""
+        data = {
+            'momento': MomentoCuestionario.PRE,
+            'tipo_cuestionario': TipoCuestionario.LIKERT,
+            'titulo': 'Likert invalido',
+            'descripcion': 'Escala con un numero de puntos no permitido.',
+            'preguntas': [
+                {
+                    'etiquetas': ['Uno', 'Dos', 'Tres', 'Cuatro', 'Cinco', 'Seis'],
+                    'textos': ['Item uno']
+                }
+            ]
+        }
+        
+        url = f'/api/programas/{programa_borrador.id}/cuestionarios/'
+        response = authenticated_client_investigador.post(url, data, format='json')
+        
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
     def test_cuestionario_create_forbidden_participante(self, authenticated_client_participante, programa_borrador):
         """Test crear cuestionario como participante (debe fallar)."""
         data = {
@@ -249,6 +318,45 @@ class TestCuestionarioParticipanteAPI:
             participante=participante,
             cuestionario=cuestionario_pre
         ).exists()
+
+    def test_responder_cuestionario_predefinido_success(self, authenticated_client_participante, participante, programa_borrador):
+        """Test responder un cuestionario predefinido de escala no de cinco puntos."""
+        cuestionario = Cuestionario.objects.create(
+            programa=programa_borrador,
+            momento=MomentoCuestionario.PRE,
+            tipo_cuestionario=TipoCuestionario.PREDEFINIDO,
+            cuestionario_predefinido='MAAS',
+            titulo='MAAS',
+            descripcion='Escala de conciencia plena.',
+            preguntas=[
+                {
+                    'etiquetas': ['Casi siempre', 'Muy frecuentemente', 'Algo frecuentemente',
+                                  'Algo infrecuentemente', 'Muy infrecuentemente', 'Casi nunca'],
+                    'textos': ['Item uno', 'Item dos', 'Item tres']
+                }
+            ]
+        )
+
+        InscripcionPrograma.objects.create(
+            programa=programa_borrador,
+            participante=participante,
+            estado_inscripcion=EstadoInscripcion.EN_PROGRESO
+        )
+
+        programa_borrador.cuestionario_pre = cuestionario
+        programa_borrador.save()
+
+        data = {'respuestas': [6, 3, 1]}
+
+        url = '/api/cuestionario/responder/pre/'
+        response = authenticated_client_participante.post(url, data, format='json')
+
+        assert response.status_code == status.HTTP_201_CREATED
+        respuesta = RespuestaCuestionario.objects.get(
+            participante=participante,
+            cuestionario=cuestionario
+        )
+        assert respuesta.respuestas == [6, 3, 1]
 
     def test_responder_cuestionario_pre_ya_respondido(self, authenticated_client_participante, participante, programa_borrador, cuestionario_pre):
         """Test responder cuestionario pre ya respondido (debe fallar)."""
