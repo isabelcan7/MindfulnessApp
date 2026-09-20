@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { rutaInicioPorRol } from '@/config/auth';
 import { ArrowLeft } from 'lucide-react';
 import ErrorAlert from '../../components/ErrorAlert';
 import BackgroundVideo from '../../components/layout/BackgroundVideo';
@@ -15,11 +16,7 @@ const Login = () => {
 
     useEffect(() => {
         if (user && isAuthenticated()) {
-            if (user.role === 'INVESTIGADOR') {
-                navigate('/dashboard');
-            } else {
-                navigate('/home');
-            }
+            navigate(rutaInicioPorRol(user.role));
         }
     }, [isAuthenticated, user, navigate]);
 

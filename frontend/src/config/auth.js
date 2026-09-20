@@ -4,6 +4,14 @@ export const ROLES = {
     ADMIN: 'ADMIN',
 };
 
+export const RUTAS_INICIO = {
+    [ROLES.ADMIN]: '/admin',
+    [ROLES.INVESTIGADOR]: '/dashboard',
+    [ROLES.PARTICIPANTE]: '/home',
+};
+
+export const rutaInicioPorRol = (role) => RUTAS_INICIO[role] || '/home';
+
 export const PERMISSIONS = {
     CREATE_PROGRAM: 'create_program',
     EDIT_PROGRAM: 'edit_program',

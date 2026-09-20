@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { rutaInicioPorRol } from '@/config/auth';
 import { ArrowLeft, Users, LinkIcon } from 'lucide-react';
 import ErrorAlert from '../../components/ErrorAlert';
 import { Genero, NivelEducativo, ExperienciaMindfulness } from '../../constants/enums';
@@ -74,11 +75,7 @@ const RegisterParticipante = () => {
 
     useEffect(() => {
         if (isAuthenticated()) {
-            if (user.role === 'INVESTIGADOR') {
-                navigate('/dashboard');
-            } else {
-                navigate('/home');
-            }
+            navigate(rutaInicioPorRol(user.role));
         }
     }, [isAuthenticated, user, navigate]);
 

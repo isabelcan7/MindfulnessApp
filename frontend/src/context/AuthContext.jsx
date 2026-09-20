@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../config/axios';
-import { ROLES, PERMISSIONS, ROLE_PERMISSIONS } from '../config/auth';
+import { ROLES, PERMISSIONS, ROLE_PERMISSIONS, rutaInicioPorRol } from '../config/auth';
 
 const AuthContext = createContext();
 
@@ -95,13 +95,7 @@ export const AuthProvider = ({ children }) => {
             setUser(user);
 
             // Redirigir según el rol
-            if (user.role === ROLES.ADMIN) {
-                navigate('/admin');
-            } else if (user.role === ROLES.INVESTIGADOR) {
-                navigate('/dashboard');
-            } else {
-                navigate('/home');
-            }
+            navigate(rutaInicioPorRol(user.role));
         } catch (err) {
             console.error("Error en el login: ", err);
             setError(err.response?.data?.error || 'Error al iniciar sesión');
@@ -126,11 +120,7 @@ export const AuthProvider = ({ children }) => {
             setError(null);
 
             // Redirigir según el rol
-            if (user.role === ROLES.INVESTIGADOR) {
-                navigate('/dashboard');
-            } else {
-                navigate('/home');
-            }
+            navigate(rutaInicioPorRol(user.role));
         } catch (error) {
             console.error('Error en el registro:', error);
             if (error.response?.data?.error) {
