@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from .models import Usuario, Investigador, Participante
@@ -84,7 +85,13 @@ class UsuarioSerializer(serializers.ModelSerializer):
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True)
-    username = serializers.CharField(required=True)
+    username = serializers.CharField(
+        required=True,
+        validators=[UniqueValidator(
+            queryset=Usuario.objects.all(),
+            message='Ya existe un usuario con este nombre de usuario'
+        )]
+    )
     
     # Campos base comunes
     telefono = serializers.CharField(required=False, allow_blank=True, allow_null=True)

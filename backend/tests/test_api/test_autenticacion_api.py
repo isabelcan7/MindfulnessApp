@@ -82,6 +82,43 @@ class TestAutenticacionAPI:
         
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
+    def test_register_username_already_exists(self, api_client, participante):
+        """Test registro con username que ya existe."""
+        data = {
+            'username': participante.usuario.username,
+            'email': 'otro_email@ejemplo.com',
+            'password': 'password123',
+            'nombre': 'Otro',
+            'apellidos': 'Usuario',
+            'role': RoleUsuario.PARTICIPANTE,
+            'aceptaTerminos': True
+        }
+        
+        url = reverse('register')
+        response = api_client.post(url, data, format='json')
+        
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.data['error'] == 'Ya existe un usuario con este nombre de usuario'
+
+    def test_register_error_no_expone_repr_de_drf(self, api_client, participante):
+        """Test que los errores de registro llegan como texto legible."""
+        data = {
+            'username': participante.usuario.username,
+            'email': 'otro_email_2@ejemplo.com',
+            'password': 'password123',
+            'nombre': 'Otro',
+            'apellidos': 'Usuario',
+            'role': RoleUsuario.PARTICIPANTE,
+            'aceptaTerminos': True
+        }
+        
+        url = reverse('register')
+        response = api_client.post(url, data, format='json')
+        
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert isinstance(response.data['error'], str)
+        assert 'ErrorDetail' not in response.data['error']
+
     def test_login_success(self, api_client, participante):
         """Test login exitoso."""
         data = {

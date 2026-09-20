@@ -6,6 +6,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth import authenticate, get_user_model
 from django.core.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError as DRFValidationError
 from usuario.serializers import (
     UsuarioSerializer, 
     UpdateUsuarioSerializer, 
@@ -23,6 +24,20 @@ class AuthUserRateThrottle(UserRateThrottle):
 
 Usuario = get_user_model()
 
+
+def mensaje_de_error(exc):
+    detalle = getattr(exc, 'detail', exc)
+    while isinstance(detalle, (dict, list, tuple)):
+        if isinstance(detalle, dict):
+            if not detalle:
+                return 'Error de validacion'
+            detalle = next(iter(detalle.values()))
+        else:
+            if not detalle:
+                return 'Error de validacion'
+            detalle = detalle[0]
+    return str(detalle)
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 @throttle_classes([AuthAnonRateThrottle])
@@ -38,10 +53,18 @@ def register(request):
                 'refresh': str(refresh),
                 'user': UsuarioSerializer(user).data
             }, status=status.HTTP_201_CREATED)
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except DRFValidationError as e:
+            return Response({'error': mensaje_de_error(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception:
+            return Response(
+                {'error': 'No se ha podido completar el registro'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
     
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response(
+        {'error': mensaje_de_error(serializer.errors), 'errors': serializer.errors},
+        status=status.HTTP_400_BAD_REQUEST
+    )
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -88,7 +111,10 @@ def update_profile(request):
         serializer.save()
         return Response(serializer.data)
     
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response(
+        {'error': mensaje_de_error(serializer.errors), 'errors': serializer.errors},
+        status=status.HTTP_400_BAD_REQUEST
+    )
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -122,7 +148,10 @@ def change_password(request):
             'user': UsuarioSerializer(user).data
         }, status=status.HTTP_200_OK)
     
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response(
+        {'error': mensaje_de_error(serializer.errors), 'errors': serializer.errors},
+        status=status.HTTP_400_BAD_REQUEST
+    )
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
