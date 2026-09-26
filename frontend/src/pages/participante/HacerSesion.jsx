@@ -66,10 +66,11 @@ const HacerSesion = ({ completado }) => {
             } catch (err) {
                 if (err.response?.status === 404) {
                     // No hay diario, continuar normalmente
+                } else if (err.response?.status === 403) {
+                    navigate('/miprograma', { replace: true });
                 } else {
                     console.error('Error al cargar la sesión:', err);
                     setError('Error al cargar la sesión. Por favor, intenta nuevamente.');
-                    navigate('/forbidden');
                 }
             } finally {
                 setLoading(false);
@@ -154,7 +155,24 @@ const HacerSesion = ({ completado }) => {
     }
 
     if (!sesion) {
-        return null;
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-bl from-indigo-950 via-sky-800 to-blue-900 px-4 pb-16 md:pb-0">
+                <div className="w-full max-w-md">
+                    <ErrorAlert
+                        message={error || 'No se ha podido cargar la sesión.'}
+                        onClose={() => setError(null)}
+                    />
+                    <button
+                        onClick={() => navigate('/miprograma')}
+                        className="mt-4 w-full inline-flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-blue-500 hover:from-indigo-700 hover:to-blue-600"
+                    >
+                        <ArrowLeft className="h-4 w-4 mr-2" />
+                        Volver a mi programa
+                    </button>
+                </div>
+                <MobileNavBar />
+            </div>
+        );
     }
 
     const formatTime = (seconds) => {

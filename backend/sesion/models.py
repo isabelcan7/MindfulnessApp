@@ -48,9 +48,13 @@ class Sesion(models.Model):
     
     def esta_disponible_para(self, usuario):
         """Verifica si la sesión está disponible para un usuario."""
+        participante = getattr(usuario, 'perfil_participante', None)
+        if participante is None:
+            return False
+
         # Verificar si el usuario está inscrito en el programa
         inscripcion = InscripcionPrograma.objects.filter(
-            participante=usuario,
+            participante=participante,
             programa=self.programa,
             estado_inscripcion=EstadoInscripcion.EN_PROGRESO
         ).first()
@@ -68,7 +72,7 @@ class Sesion(models.Model):
             return False
             
         # Verificar si ya existe un diario para esta sesión
-        if DiarioSesion.objects.filter(participante=usuario, sesion=self).exists():
+        if DiarioSesion.objects.filter(participante=participante, sesion=self).exists():
             return False
             
         # Verificar si la sesión anterior está completada
@@ -80,7 +84,7 @@ class Sesion(models.Model):
             
             if sesion_anterior:
                 diario_anterior = DiarioSesion.objects.filter(
-                    participante=usuario,
+                    participante=participante,
                     sesion=sesion_anterior
                 ).exists()
                 
