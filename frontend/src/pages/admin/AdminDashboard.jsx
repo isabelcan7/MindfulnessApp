@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
     Activity, AlertTriangle, BarChart3, ClipboardList, FileText, GraduationCap,
-    LayoutDashboard, Loader2, RefreshCw, TrendingUp, UserPlus, Users
+    LayoutDashboard, Loader2, TrendingUp, UserPlus, Users
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import api from '../../config/axios';
@@ -86,7 +86,6 @@ const GraficoRegistros = ({ serie }) => {
 const AdminDashboard = () => {
     const [resumen, setResumen] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [recargando, setRecargando] = useState(false);
     const [error, setError] = useState(null);
 
     const cargar = async () => {
@@ -107,12 +106,6 @@ const AdminDashboard = () => {
         };
         inicial();
     }, []);
-
-    const recargar = async () => {
-        setRecargando(true);
-        await cargar();
-        setRecargando(false);
-    };
 
     if (loading) {
         return (
@@ -145,16 +138,6 @@ const AdminDashboard = () => {
                 titulo="Panel de administración"
                 descripcion="Estado global de la plataforma: registros, programas, inscripciones y actividad."
                 icono={LayoutDashboard}
-                acciones={
-                    <button
-                        onClick={recargar}
-                        disabled={recargando}
-                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-cyan-500 to-emerald-500 rounded-xl text-white font-semibold shadow-lg hover:shadow-cyan-500/30 transition-all disabled:opacity-60"
-                    >
-                        <RefreshCw className={`h-4 w-4 ${recargando ? 'animate-spin' : ''}`} />
-                        Actualizar
-                    </button>
-                }
             />
 
             <ErrorAlert message={error} onClose={() => setError(null)} />
