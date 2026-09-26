@@ -6,7 +6,7 @@ const TerminosServicio = () => {
     const navigate = useNavigate();
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-12 px-4 sm:px-6 lg:px-8">
+        <div data-page-bg="light" className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto">
                 <button
                     onClick={() => navigate(-1)}

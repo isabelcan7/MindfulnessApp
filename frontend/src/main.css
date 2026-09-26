@@ -7,6 +7,20 @@
   --font-family-sans: 'Satoshi', sans-serif;
 }*/
 
+html {
+  background-color: #0f172a;
+}
+
+html:has([data-page-bg="light"]) {
+  background-color: #f9fafb;
+}
+
+html,
+body {
+  overscroll-behavior-y: none;
+}
+
 body {
   font-family: 'Inter', sans-serif;
+  background-color: transparent;
 }
