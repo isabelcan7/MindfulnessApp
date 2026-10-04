@@ -46,6 +46,45 @@ class TestSesionAPI:
         assert response.data['titulo'] == 'Nueva Sesión Test'
         assert Sesion.objects.filter(titulo='Nueva Sesión Test').exists()
 
+    def test_sesion_create_tipo_escala_vacio(self, authenticated_client_investigador, programa_borrador):
+        """Test crear sesión con tipo_escala vacío en un programa sin diarios."""
+        data = {
+            'programa': programa_borrador.id,
+            'titulo': 'Sesion Sin Escala',
+            'descripcion': 'Programa que no usa diarios',
+            'semana': 3,
+            'duracion_estimada': 20,
+            'tipo_practica': 'breath',
+            'tipo_contenido': 'temporizador',
+            'contenido_temporizador': 10,
+            'tipo_escala': ''
+        }
+
+        url = '/api/sesiones/'
+        response = authenticated_client_investigador.post(url, data, format='json')
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert Sesion.objects.get(titulo='Sesion Sin Escala').tipo_escala is None
+
+    def test_sesion_update_tipo_escala_vacio(self, authenticated_client_investigador, sesion):
+        """Test actualizar una sesión enviando tipo_escala vacío."""
+        data = {
+            'programa': sesion.programa.id,
+            'titulo': sesion.titulo,
+            'semana': sesion.semana,
+            'tipo_practica': sesion.tipo_practica,
+            'tipo_contenido': 'temporizador',
+            'contenido_temporizador': 5,
+            'tipo_escala': ''
+        }
+
+        url = f'/api/sesiones/{sesion.id}/'
+        response = authenticated_client_investigador.put(url, data, format='json')
+
+        assert response.status_code == status.HTTP_200_OK
+        sesion.refresh_from_db()
+        assert sesion.tipo_escala is None
+
     def test_sesion_create_forbidden_participante(self, authenticated_client_participante, programa_borrador):
         """Test crear sesión como participante (debe fallar)."""
         data = {

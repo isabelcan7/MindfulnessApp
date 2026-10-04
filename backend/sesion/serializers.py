@@ -21,7 +21,7 @@ class SesionSerializer(serializers.ModelSerializer):
     tipo_practica_display = serializers.CharField(source='get_tipo_practica_display', read_only=True)
     tipo_contenido_display = serializers.CharField(source='get_tipo_contenido_display', read_only=True)
     tipo_escala_display = serializers.CharField(source='get_tipo_escala_display', read_only=True)
-    tipo_escala = serializers.ChoiceField(choices=Escala.choices, required=False, allow_null=True)
+    tipo_escala = serializers.ChoiceField(choices=Escala.choices, required=False, allow_null=True, allow_blank=True)
 
     class Meta:
         model = Sesion
@@ -37,6 +37,9 @@ class SesionSerializer(serializers.ModelSerializer):
     contenido_url = serializers.URLField(required=False, allow_blank=True, allow_null=True)
     contenido_audio = serializers.FileField(required=False, allow_null=True, write_only=True)
     contenido_video = serializers.FileField(required=False, allow_null=True, write_only=True)
+
+    def validate_tipo_escala(self, value):
+        return value or None
 
     def validate_contenido_audio(self, value):
         return validar_audio(value)

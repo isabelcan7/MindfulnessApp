@@ -82,7 +82,7 @@ const EditarSesion = () => {
         try {
             const formDataToSend = prepareSessionFormData(formData, originalData);
             if (!programa.tiene_diarios) {
-                delete formDataToSend.tipo_escala;
+                formDataToSend.delete('tipo_escala');
             }
             await api.put(`/sesiones/${sesionId}/`, formDataToSend, {
                 headers: {

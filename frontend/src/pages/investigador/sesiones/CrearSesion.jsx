@@ -83,7 +83,7 @@ const CrearSesion = () => {
             }
 
             if (!programa.tiene_diarios) {
-                delete formDataToSend.tipo_escala;
+                formDataToSend.delete('tipo_escala');
             }
 
             const response = await api.post('sesiones', formDataToSend, {
