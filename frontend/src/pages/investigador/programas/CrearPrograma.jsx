@@ -213,7 +213,7 @@ const CrearPrograma = () => {
                                         </label>
                                         <div className="group relative">
                                             <HelpCircle className="h-5 w-5 text-purple-300 cursor-help hover:text-purple-200 transition-colors duration-200" />
-                                            <div className="absolute bottom-full right-0 mb-2 w-72 p-3 bg-gray-900/90 backdrop-blur-sm text-white text-sm rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none shadow-lg border border-white/10">
+                                            <div className="absolute bottom-full left-0 mb-2 w-72 p-3 bg-gray-900/90 backdrop-blur-sm text-white text-sm rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none shadow-lg border border-white/10">
                                                 <div className="font-medium mb-1">Duración del Programa</div>
                                                 <p className="text-gray-200">Este número determinará la cantidad de sesiones que deberás crear para el programa. Cada semana corresponde a una sesión.</p>
                                             </div>
