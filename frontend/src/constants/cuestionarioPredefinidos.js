@@ -6,7 +6,7 @@ const ESCALA_PANAS = ['Muy poco o nada', 'Un poco', 'Moderadamente', 'Bastante',
 const ESCALA_RYFF = ['Totalmente en desacuerdo', 'En desacuerdo', 'Algo en desacuerdo', 'Algo de acuerdo', 'De acuerdo', 'Totalmente de acuerdo'];
 const ESCALA_SCS = ['Casi nunca', 'Pocas veces', 'A veces', 'Muchas veces', 'Casi siempre'];
 const ESCALA_MAIA = ['Nunca', 'Casi nunca', 'Alguna vez', 'A menudo', 'Casi siempre', 'Siempre'];
-const ESCALA_MBI = ['Nunca', 'Alguna vez al año o menos', 'Una vez al mes o menos', 'Algunas veces al mes', 'Una vez a la semana', 'Varias veces a la semana', 'Todos los días'];
+const ESCALA_CBI = ['Nunca', 'Sólo alguna vez', 'Algunas veces', 'Muchas veces', 'Siempre'];
 
 export const cuestionariosPredefinidos = [
     {
@@ -169,23 +169,77 @@ export const cuestionariosPredefinidos = [
     },
     {
         id: 'MAIA',
-        nombre: 'MAIA (Multidimensional Assessment of Interoceptive Awareness)',
-        descripcion: 'Mide la conciencia de las señales corporales a través de ocho dimensiones.',
-        version: 'Elige la versión (MAIA de 32 ítems o MAIA-2 de 37) y añade sus ítems',
+        nombre: 'MAIA-2 (Multidimensional Assessment of Interoceptive Awareness)',
+        descripcion: 'Mide la conciencia de las señales corporales a través de ocho dimensiones: darse cuenta, no distraerse, no preocuparse, regulación de la atención, conciencia emocional, autorregulación, escucha corporal y confianza.',
+        version: '37 ítems (MAIA-2)',
         etiquetas: ESCALA_MAIA,
-        textos: [],
-        requiereItems: true,
-        motivoItems: 'Existen varias versiones validadas con distinto número de ítems. Añade los de la versión que vayas a citar en tu estudio.'
+        textos: [
+            'Cuando estoy tenso, noto dónde se ubica la tensión en mi cuerpo.',
+            'Me doy cuenta cuando me siento incómodo en mi cuerpo.',
+            'Cuando estoy cómodo, lo noto en partes concretas de mi cuerpo.',
+            'Noto los cambios en mi respiración, como cuando se hace más lenta o más rápida.',
+            'Ignoro la tensión física o el malestar hasta que se vuelven más intensos.',
+            'Me distraigo de las sensaciones de malestar.',
+            'Cuando siento dolor o malestar, intento sobreponerme y seguir adelante.',
+            'Intento ignorar el dolor.',
+            'Aparto las sensaciones de malestar concentrándome en otra cosa.',
+            'Cuando siento sensaciones corporales desagradables, me ocupo de otra cosa para no tener que sentirlas.',
+            'Cuando siento dolor físico, me altero.',
+            'Si siento cualquier malestar, me empieza a preocupar que algo va mal.',
+            'Puedo notar una sensación corporal desagradable sin preocuparme por ella.',
+            'Puedo mantener la calma y no preocuparme cuando tengo sensaciones de malestar o dolor.',
+            'Cuando siento malestar o dolor, no consigo quitármelo de la cabeza.',
+            'Puedo prestar atención a mi respiración sin distraerme con lo que pasa a mi alrededor.',
+            'Puedo mantener la conciencia de mis sensaciones corporales internas aunque haya muchas cosas sucediendo a mi alrededor.',
+            'Cuando estoy conversando con alguien, puedo prestar atención a mi postura.',
+            'Puedo volver a llevar la atención a mi cuerpo si estoy distraído.',
+            'Puedo redirigir mi atención desde mis pensamientos a mis sensaciones corporales.',
+            'Puedo mantener la conciencia de todo mi cuerpo incluso cuando una parte de mí siente dolor o malestar.',
+            'Soy capaz de concentrarme conscientemente en mi cuerpo de manera global.',
+            'Noto cómo cambia mi cuerpo cuando estoy enfadado.',
+            'Cuando algo va mal en mi vida, puedo sentirlo en mi cuerpo.',
+            'Noto que mi cuerpo se siente diferente después de una experiencia de calma.',
+            'Noto que mi respiración se vuelve libre y fácil cuando me siento cómodo.',
+            'Noto cómo cambia mi cuerpo cuando me siento contento o feliz.',
+            'Cuando me siento sobrepasado, puedo encontrar un lugar tranquilo dentro de mí.',
+            'Cuando dirijo la atención hacia mi cuerpo, siento calma.',
+            'Puedo utilizar mi respiración para reducir la tensión.',
+            'Cuando estoy atrapado en mis pensamientos, puedo calmar mi mente concentrándome en mi cuerpo o en mi respiración.',
+            'Escucho la información que envía mi cuerpo sobre mi estado emocional.',
+            'Cuando estoy alterado, me tomo el tiempo de explorar cómo se siente mi cuerpo.',
+            'Escucho a mi cuerpo para saber qué hacer.',
+            'En mi cuerpo, me siento en casa.',
+            'Siento que mi cuerpo es un lugar seguro.',
+            'Confío en mis sensaciones corporales.'
+        ]
     },
     {
-        id: 'MBI',
-        nombre: 'MBI (Maslach Burnout Inventory)',
-        descripcion: 'Evalúa el agotamiento laboral, la despersonalización y la realización personal.',
-        version: 'Requiere licencia',
-        etiquetas: ESCALA_MBI,
-        textos: [],
-        requiereItems: true,
-        motivoItems: 'El MBI se distribuye bajo licencia comercial y sus ítems no se pueden incluir en el repositorio. Añade los ítems de la copia que tengas licenciada.'
+        id: 'CBI',
+        nombre: 'CBI (Copenhagen Burnout Inventory)',
+        descripcion: 'Mide el burnout en tres escalas: agotamiento personal (ítems 1-6), agotamiento relacionado con el trabajo (7-13) y agotamiento relacionado con el trato con usuarios (14-19). Los seis últimos ítems solo se responden si se trabaja con clientes o usuarios más de la mitad de la jornada.',
+        version: '19 ítems · versión española validada (Molinero Ruiz et al., 2013)',
+        etiquetas: ESCALA_CBI,
+        textos: [
+            '¿Con qué frecuencia te sientes cansado?',
+            '¿Con qué frecuencia estás físicamente agotado?',
+            '¿Con qué frecuencia estás psicológicamente agotado?',
+            '¿Con qué frecuencia te sientes agotado?',
+            '¿Con qué frecuencia te sientes débil y susceptible de enfermar?',
+            '¿Con qué frecuencia piensas "no puedo más"?',
+            '¿Te sientes agotado al final de tu jornada laboral?',
+            '¿Por la mañana te agota pensar en otro día de trabajo?',
+            '¿Sientes que cada hora de trabajo es agotadora?',
+            '¿Tienes suficiente energía para la familia y los amigos durante el tiempo libre?',
+            '¿Tu trabajo es emocionalmente agotador?',
+            '¿Te sientes frustrado por tu trabajo?',
+            '¿Te sientes quemado por tu trabajo?',
+            '¿Es duro trabajar con clientes o usuarios?',
+            '¿Trabajar con clientes o usuarios consume tu energía?',
+            '¿Es frustrante trabajar con clientes o usuarios?',
+            '¿Sientes que das más que recibes cuando trabajas con clientes o usuarios?',
+            '¿Estás cansado de trabajar con clientes o usuarios?',
+            '¿A veces te preguntas cuánto tiempo podrás continuar trabajando con clientes o usuarios?'
+        ]
     }
 ];
 
